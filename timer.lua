@@ -230,8 +230,8 @@ function script_properties()
 	obs.obs_properties_add_button(props, "15min_button", "15 minuti", min15_button_clicked)
 	obs.obs_properties_add_button(props, "30min_button", "30 minuti", min30_button_clicked)
 	obs.obs_properties_add_button(props, "60min_button", "60 minuti", min60_button_clicked)
-	obs.obs_properties_add_int_slider(props, "duration", "Durata (min)", 1, 60, 1)
-	obs.obs_properties_add_button(props, "set_button", "Imposta", set_button_clicked)
+	obs.obs_properties_add_int_slider(props, "duration", "Time (min)", 1, 60, 1)
+	obs.obs_properties_add_button(props, "set_button", "Set", set_button_clicked)
 
 	return props
 end
@@ -240,7 +240,7 @@ end
 -- A function named script_description returns the description shown to
 -- the user
 function script_description()
-	return "Timer adunanze"
+	return "Timer JW Meeting"
 end
 
 -- A function named script_update will be called when settings are changed
