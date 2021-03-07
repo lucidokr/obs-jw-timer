@@ -57,8 +57,10 @@ function timer_callback()
 		delay = true
 		local source_delay = obs.obs_get_source_by_name(source_delay)
 		obs.obs_source_set_enabled(source_delay, true)
+		obs.obs_source_release(source_delay)
 		local source_timer = obs.obs_get_source_by_name(source_timer)
 		obs.obs_source_set_enabled(source_timer, false)
+		obs.obs_source_release(source_timer)
 	end
 	if delay then
 		delay_seconds = delay_seconds + 1
@@ -91,10 +93,18 @@ end
 
 -- Called when a source is activated/deactivated
 function activate_signal(cd, activating)
-	local source = obs.calldata_source(cd, "source")
+	local source = obs.calldata_source(cd, "source_timer")
 	if source ~= nil then
 		local name = obs.obs_source_get_name(source)
 		if (name == source_timer) then
+			activate(activating)
+		end
+	end
+
+	local source = obs.calldata_source(cd, "source_delay")
+	if source ~= nil then
+		local name = obs.obs_source_get_name(source)
+		if (name == source_delay) then
 			activate(activating)
 		end
 	end
@@ -128,8 +138,11 @@ function reset_button_clicked()
 	delay_seconds = 0
 	local source_delay = obs.obs_get_source_by_name(source_delay)
 	obs.obs_source_set_enabled(source_delay, false)
+	obs.obs_source_release(source_delay)
+	
 	local source_timer = obs.obs_get_source_by_name(source_timer)
-	obs.obs_source_set_enabled(source_timer, true)
+	obs.obs_source_set_enabled(source_timer, true)		
+	obs.obs_source_release(source_timer)
 	set_time_text()
 	obs.timer_remove(timer_callback)
 	return false
@@ -141,8 +154,10 @@ function change_min(min)
 	delay_seconds = 0
 	local source_delay = obs.obs_get_source_by_name(source_delay)
 	obs.obs_source_set_enabled(source_delay, false)
+	obs.obs_source_release(source_delay)
 	local source_timer = obs.obs_get_source_by_name(source_timer)
 	obs.obs_source_set_enabled(source_timer, true)
+	obs.obs_source_release(source_timer)
 	total_seconds = min * 60
 	reset(true)
 end
@@ -221,15 +236,15 @@ function script_properties()
 	end
 	obs.source_list_release(sources)
 
-	obs.obs_properties_add_button(props, "pause_button", "Play / Pausa", pause_button_clicked)
+	obs.obs_properties_add_button(props, "pause_button", "Play / Pause", pause_button_clicked)
 	obs.obs_properties_add_button(props, "reset_button", "Stop", reset_button_clicked)
-	obs.obs_properties_add_button(props, "3min_button", "3 minuti", min3_button_clicked)
-	obs.obs_properties_add_button(props, "4min_button", "4 minuti", min4_button_clicked)
-	obs.obs_properties_add_button(props, "5min_button", "5 minuti", min5_button_clicked)
-	obs.obs_properties_add_button(props, "10min_button", "10 minuti", min10_button_clicked)
-	obs.obs_properties_add_button(props, "15min_button", "15 minuti", min15_button_clicked)
-	obs.obs_properties_add_button(props, "30min_button", "30 minuti", min30_button_clicked)
-	obs.obs_properties_add_button(props, "60min_button", "60 minuti", min60_button_clicked)
+	obs.obs_properties_add_button(props, "3min_button", "3 min", min3_button_clicked)
+	obs.obs_properties_add_button(props, "4min_button", "4 min", min4_button_clicked)
+	obs.obs_properties_add_button(props, "5min_button", "5 min", min5_button_clicked)
+	obs.obs_properties_add_button(props, "10min_button", "10 min", min10_button_clicked)
+	obs.obs_properties_add_button(props, "15min_button", "15 min", min15_button_clicked)
+	obs.obs_properties_add_button(props, "30min_button", "30 min", min30_button_clicked)
+	obs.obs_properties_add_button(props, "60min_button", "60 min", min60_button_clicked)
 	obs.obs_properties_add_int_slider(props, "duration", "Time (min)", 1, 60, 1)
 	obs.obs_properties_add_button(props, "set_button", "Set", set_button_clicked)
 
@@ -260,18 +275,6 @@ end
 -- A function named script_defaults will be called to set the default settings
 function script_defaults(settings)
 	obs.obs_data_set_default_int(settings, "duration", 5)
-	obs.obs_data_set_default_string(settings, "stop_text", "Starting soon (tm)")
-end
-
--- A function named script_save will be called when the script is saved
---
--- NOTE: This function is usually used for saving extra data (such as in this
--- case, a hotkey's save data).  Settings set via the properties are saved
--- automatically.
-function script_save(settings)
-	local hotkey_save_array = obs.obs_hotkey_save(hotkey_id)
-	obs.obs_data_set_array(settings, "reset_hotkey", hotkey_save_array)
-	obs.obs_data_array_release(hotkey_save_array)
 end
 
 -- a function named script_load will be called on startup
@@ -285,10 +288,4 @@ function script_load(settings)
 	-- unloaded.
 	local sh = obs.obs_get_signal_handler()
 	obs.signal_handler_connect(sh, "source_activate", source_activated)
-	obs.signal_handler_connect(sh, "source_deactivate", source_deactivated)
-
-	hotkey_id = obs.obs_hotkey_register_frontend("reset_timer_thingy", "Reset Timer", reset)
-	local hotkey_save_array = obs.obs_data_get_array(settings, "reset_hotkey")
-	obs.obs_hotkey_load(hotkey_id, hotkey_save_array)
-	obs.obs_data_array_release(hotkey_save_array)
 end
