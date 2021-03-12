@@ -23,6 +23,9 @@ function set_time_text()
 		local delay_minutes = math.floor(delay_seconds / 60)
 		local minutes       = math.floor(delay_minutes % 60)
 		local text = string.format("%02d:%02d", minutes, seconds)
+		if minutes <= 0 then
+			text = string.format("%02d", seconds)
+		end
 		text= text
 		local source = obs.obs_get_source_by_name(source_delay)
 		if source ~= nil then
@@ -37,6 +40,9 @@ function set_time_text()
 		local total_minutes = math.floor(cur_seconds / 60)
 		local minutes       = math.floor(total_minutes % 60)
 		local text = string.format("%02d:%02d", minutes, seconds)
+		if minutes <= 0 then
+			text = string.format("%02d", seconds)
+		end
 		if text ~= last_text then
 			local source = obs.obs_get_source_by_name(source_timer)
 			if source ~= nil then
